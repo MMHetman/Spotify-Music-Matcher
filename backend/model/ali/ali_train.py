@@ -1,5 +1,5 @@
-from ali.ali_model import ALIModel
-from keras_adversarial import gan_targets
+from backend.model.ali.ali_model import ALIModel
+from backend.model.keras_adversarial import gan_targets
 import numpy as np
 
 
