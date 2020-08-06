@@ -32,7 +32,9 @@ def upload_file():
             return redirect(request.url)
         else:
             mp3_array, rate = mp3_to_array(file)
-            return {'spectrogram': [mp3_array.tolist(), rate]}
+            spectr = get_spectrogram(mp3_array, rate)[0]
+
+            return {'spectrogram': spectr.tolist()}
 
 
 if __name__ == '__main__':
