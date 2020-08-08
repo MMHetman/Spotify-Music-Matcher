@@ -1,6 +1,6 @@
 from flask import Flask, flash, request, redirect, url_for
 from werkzeug.utils import secure_filename
-from backend.data.spectgrams_coverter import mp3_to_array, get_spectrogram
+from backend.data.spectrograms import mp3_to_array, get_spectrogram
 import pathlib
 
 # configuration

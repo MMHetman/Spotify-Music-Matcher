@@ -1,2 +1,4 @@
 Flask==1.1.2
 Flask-Cors==3.0.8
+Spotipy==2.13.0
+Pydub==0.24.1
