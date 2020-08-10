@@ -1,8 +1,7 @@
-import sys
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy import signal
 from pydub import AudioSegment
+from scipy import signal
 
 millis_per_sec = 1000
 
