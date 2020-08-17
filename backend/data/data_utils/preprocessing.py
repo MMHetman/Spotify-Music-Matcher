@@ -26,18 +26,20 @@ def get_rand_specs_from(files, data_dir, num_secs):
     return stacked
 
 
-def create_data_batch(previews_to_process, data_dir, filename):
+def create_data_batch(previews_to_process, data_dir, target_dir, filename):
     specs = get_rand_specs_from(previews_to_process, data_dir, 5)
-    np.save('{}.npy'.format(filename), specs)
+    print('saving: ' + filename)
+    np.save(Path(target_dir, '{}.npy'.format(filename)), specs)
+    print('saved: ' + filename)
     del specs
 
 
-def generate_dataset(track_ids, data_dir, num_samples_per_song):
+def generate_dataset(track_ids, data_dir, target_dir, num_samples_per_song):
     preview_dataset = track_ids * num_samples_per_song
     shuffle(preview_dataset)
 
     with open('training_tracks.csv', 'w') as datafile:
-        for tid in track_ids:
+        for tid in preview_dataset:
             datafile.write(tid + '\n')
 
     num_batches = int(len(preview_dataset) / DATA_BATCH_SIZE) + 1
@@ -46,6 +48,6 @@ def generate_dataset(track_ids, data_dir, num_samples_per_song):
     for start, end in [(i * DATA_BATCH_SIZE, min((i + 1) * DATA_BATCH_SIZE, len(preview_dataset))) for i in
                        range(num_batches)]:
         p = Process(target=create_data_batch, args=(
-            preview_dataset[start:end], data_dir, '{}_{}'.format(start, end)))
+            preview_dataset[start:end], data_dir, target_dir, '{}_{}'.format(start, end)))
         p.start()
         p.join()
