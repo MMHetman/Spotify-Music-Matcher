@@ -1,15 +1,15 @@
-from flask import Flask, flash, request, redirect, url_for
-from werkzeug.utils import secure_filename
-from backend.data.spectgrams_coverter import mp3_to_array, get_spectrogram
-import pathlib
+from flask import Flask, flash, request, redirect
+from flask_cors import CORS
 
-# configuration
+from backend.data.spectgrams_coverter import mp3_to_array
+
 DEBUG = True
 ALLOWED_EXTENSIONS = {'mp3'}
 
-# instantiate the app
 app = Flask(__name__)
 app.config.from_object(__name__)
+
+CORS(app, resources={r'/*': {'origins': '*'}})
 
 
 def allowed_file(filename):
@@ -20,13 +20,11 @@ def allowed_file(filename):
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
-        # check if the post request has the file part
         if 'file' not in request.files:
             flash('No file part')
             return redirect(request.url)
         file = request.files['file']
-        # if user does not select file, browser also
-        # submit an empty part without filename
+
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)
