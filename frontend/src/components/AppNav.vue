@@ -1,6 +1,6 @@
 <template>
-    <span>
-        <v-app-bar color="grey darken-4" dark>
+    <nav>
+        <v-app-bar app color="grey darken-4" dark>
             <v-spacer class="hidden-md-and-up"></v-spacer>
             <router-link to="/">
                 <v-toolbar-title data-cy="titleBtn">{{
@@ -10,7 +10,7 @@
             <v-spacer />
             <v-btn color="yellow darken-2" to="/about">About</v-btn>
         </v-app-bar>
-    </span>
+    </nav>
 </template>
 
 <script>
@@ -28,5 +28,11 @@ export default {
 a {
     color: white !important;
     text-decoration: none;
+}
+nav {
+    font-weight: bolder;
+}
+.v-btn{
+    font-weight: 600;
 }
 </style>

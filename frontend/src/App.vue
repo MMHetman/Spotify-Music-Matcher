@@ -1,7 +1,7 @@
 <template>
     <v-app>
         <app-nav />
-        <v-main transition="slide-x-transition">
+        <v-main>
             <router-view></router-view>
         </v-main>
     </v-app>
@@ -15,4 +15,9 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Ruda:wght@400;500;600;700;800;900&display=swap');
+.v-application {
+    font-family: 'Ruda', sans-serif !important;
+}
+</style>

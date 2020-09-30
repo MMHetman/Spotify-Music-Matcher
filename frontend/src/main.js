@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import VueScrollTo from 'vue-scrollto';
 import App from './App.vue';
 import router from './router';
 import store from './store';
@@ -11,5 +12,6 @@ new Vue({
     router,
     store,
     vuetify,
+    VueScrollTo,
     render: h => h(App)
 }).$mount('#app');

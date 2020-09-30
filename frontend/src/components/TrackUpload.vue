@@ -19,20 +19,21 @@ export default {
     name: 'TrackUpload',
     data() {
         return {
-            selectedFile: undefined
+            selectedFile: undefined,
         };
     },
     methods: {
         onFileSelected(event) {
             this.selectedFile = event;
-            console.log(this.selectedFile)
+            console.log(this.selectedFile);
         },
         onSubmit() {
             const formData = new FormData();
             formData.append('file', this.selectedFile, this.selectedFile.name);
-            axios
-                .post('http://127.0.0.1:5000', formData)
-                .then(response => console.log('response', response.data));
+            axios.post('http://127.0.0.1:5000', formData).then(response => {
+                console.log('response', response.data);
+                this.$emit('responseReached', true);
+            });
         }
     }
 };
