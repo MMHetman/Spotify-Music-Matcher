@@ -1,15 +1,19 @@
-import time
-
+import json
+import shutil
+import tempfile
+import pandas
+import h5py
 import librosa
 import numpy as np
-import tempfile
-import shutil
-import os
-from pathlib2 import Path
+import requests
+
 from flask import Flask, flash, request, redirect
 from flask_cors import CORS
+from pathlib2 import Path
+from sklearn.metrics.pairwise import cosine_similarity
+from sqlalchemy import create_engine
 
-from backend.model.triplet_loss_nn.model import SiameseNetworkModel
+from backend.server.processing_data_input import InputProcessor
 
 DEBUG = True
 ALLOWED_EXTENSIONS = {'mp3'}
@@ -17,9 +21,12 @@ ALLOWED_EXTENSIONS = {'mp3'}
 app = Flask(__name__)
 app.config.from_object(__name__)
 
+sql_engine = create_engine('mysql+pymysql://root:password@localhost/spotify_music_matcher')
+
 CORS(app, resources={r'/*': {'origins': '*'}})
 
-model = SiameseNetworkModel('backend/model/train_hard_mining/cp.ckpt')
+input_processor = InputProcessor
+
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -47,10 +54,31 @@ def upload_file():
             temp_dir = tempfile.mkdtemp()
             temp_path = Path(temp_dir, 'track')
             file.save(temp_path)
-            audio_array = np.expand_dims(audio_to_array(str(temp_path)), axis=0)
-            shutil.rmtree(temp_dir)
 
-            return {'embedding': model.embed(audio_array).tolist()}
+            data = json.dumps({
+                'instances': InputProcessor().process_audio_input(str(temp_path)).tolist()
+            })
+
+            response = requests.post('http://localhost:9000/v1/models/SongEmbedding:predict', data=data.encode('utf-8'))
+            shutil.rmtree(temp_dir)
+            embedding = np.mean(response.json()['predictions'], axis=0)
+            with h5py.File('backend/model/triplet_loss_nn/embeddings.hdf5', 'r') as file:
+                cs = cosine_similarity(file['embeddings'], embedding.reshape(1, -1))
+                indices = cs.flatten().argsort()[::-1][:50]
+                labels = set()
+                for i in indices:
+                    if len(labels) == 5:
+                        break
+                    label = file['labels'][i]
+                    labels.add("'"+label+"'")
+
+            query = 'select distinct artist_name, track_name, cover ' \
+                    'from tracks join track_n_artist tna on tracks.track_id = tna.track_id ' \
+                    'join artists a on a.artist_id = tna.artist_id ' \
+                    'join cover_n_sample cns on tracks.sample = cns.sample ' \
+                    'where tracks.track_id in (' + ','.join(labels) + ')'
+            json_res = pandas.read_sql(query, sql_engine).to_json(orient='records')
+            return json_res
 
 
 if __name__ == '__main__':

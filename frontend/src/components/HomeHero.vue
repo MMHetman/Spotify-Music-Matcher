@@ -16,10 +16,10 @@
 import TrackUpload from '@/components/TrackUpload';
 export default {
     name: 'HomeHero',
-  components: {TrackUpload},
-  comments: {
+    components: { TrackUpload },
+    comments: {
         TrackUpload
-  }
+    }
 };
 </script>
 
