@@ -72,7 +72,7 @@ def upload_file():
                     label = file['labels'][i]
                     labels.add("'"+label+"'")
 
-            query = 'select distinct artist_name, track_name, cover ' \
+            query = 'select distinct track_id, artist_name, track_name, cover ' \
                     'from tracks join track_n_artist tna on tracks.track_id = tna.track_id ' \
                     'join artists a on a.artist_id = tna.artist_id ' \
                     'join cover_n_sample cns on tracks.sample = cns.sample ' \
