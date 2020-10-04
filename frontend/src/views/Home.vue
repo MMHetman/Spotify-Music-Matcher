@@ -1,7 +1,7 @@
 <template>
     <span>
         <home-hero v-on:responseCaught="showResults" />
-        <analysis-results v-if="resultsVisible"/>
+        <analysis-results v-if="resultsVisible" v-bind:tracks="tracks"/>
     </span>
 </template>
 
@@ -18,12 +18,14 @@ export default {
     },
     data() {
         return {
-            resultsVisible: false
+            resultsVisible: false,
+            tracks: []
         };
     },
     methods: {
         showResults(value) {
-            this.resultsVisible = value;
+            this.tracks = value[1];
+            this.resultsVisible = value[0];
             if (AnalysisResults.data().isMounted) {
                 const scrollTo = scroller();
                 scrollTo('#aaa');
