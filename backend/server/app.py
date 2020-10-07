@@ -59,7 +59,7 @@ def upload_file():
                 'instances': InputProcessor().process_audio_input(str(temp_path)).tolist()
             })
 
-            response = requests.post('http://localhost:9000/v1/models/SongEmbedding:predict', data=data.encode('utf-8'))
+            response = requests.post('http://localhost:9003/v1/models/SongEmbedding:predict', data=data.encode('utf-8'))
             shutil.rmtree(temp_dir)
             embedding = np.mean(response.json()['predictions'], axis=0)
             with h5py.File('backend/model/triplet_loss_nn/embeddings.hdf5', 'r') as file:
@@ -72,7 +72,7 @@ def upload_file():
                     label = file['labels'][i]
                     labels.add("'"+label+"'")
 
-            query = 'select distinct track_id, artist_name, track_name, cover ' \
+            query = 'select distinct tracks.track_id, artist_name, track_name, cover ' \
                     'from tracks join track_n_artist tna on tracks.track_id = tna.track_id ' \
                     'join artists a on a.artist_id = tna.artist_id ' \
                     'join cover_n_sample cns on tracks.sample = cns.sample ' \
