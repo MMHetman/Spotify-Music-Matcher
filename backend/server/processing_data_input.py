@@ -36,7 +36,9 @@ class AudioProcessor:
     def find_similar_tracks(self, file_stream):
         embedding = self.__get_embedding(file_stream)
         labels = self.__find_nearest_neighbours(embedding)
-        return self.__scrape_matched_tracks(labels)
+        tracks = self.__scrape_matched_tracks(labels)
+        artists = self.__scrape_matched_artists(tracks['artist_id'])
+        return self.__process_results(tracks, artists)
 
     def __process_audio_input(self, file):
         track, sampling_rate = librosa.load(file, sr=None, mono=True)
@@ -81,9 +83,20 @@ class AudioProcessor:
         return labels
 
     def __scrape_matched_tracks(self, labels):
-        query = 'select distinct tracks.track_id, artist_name, track_name, cover ' \
+        query = 'select distinct tracks.track_id, a.artist_id, album_name, track_name, cover ' \
                 'from tracks join track_n_artist tna on tracks.track_id = tna.track_id ' \
                 'join artists a on a.artist_id = tna.artist_id ' \
-                'join cover_n_sample cns on tracks.sample = cns.sample ' \
+                'join albums a2 on a2.album_id = tracks.album_id ' \
                 'where tracks.track_id in (' + ','.join(labels) + ')'
-        return pandas.read_sql(query, self.sql_engine).to_json(orient='records')
+        return pandas.read_sql(query, self.sql_engine)
+
+    def __scrape_matched_artists(self, artist_ids):
+        query = 'select artists.artist_id, artist_name, genre_name ' \
+                'from artists join artist_n_genre ang on artists.artist_id = ang.artist_id ' \
+                'join genres g on ang.genre_id = g.genre_id ' \
+                'where artists.artist_id in ("' + '","'.join(artist_ids) + '")'
+        return pandas.read_sql(query, self.sql_engine)
+
+    @staticmethod
+    def __process_results(tracks, artists):
+        return '{ tracks: ' + tracks.to_json(orient='records') + ', artists: ' + artists.to_json(orient='records') + '}'
