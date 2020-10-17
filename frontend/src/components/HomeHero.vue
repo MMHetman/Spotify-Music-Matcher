@@ -30,14 +30,12 @@ export default {
 
 <style scoped>
 .home-hero {
-    background: url('~@/assets/main_background.png');
-    background-size: cover;
-    width: 100%;
-    height: 100%;
+    background: rgb(0,0,0);
+    background: linear-gradient(25deg, rgba(0,0,0,1) 0%, rgba(122,135,190,1) 50%, rgba(144,97,145,1) 100%);
 }
 .home-title {
     font-weight: 900;
-    font-size: 750%;
+    font-size: 500%;
 }
 
 .home-subtitle {

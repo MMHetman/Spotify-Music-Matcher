@@ -1,13 +1,11 @@
-import numpy as np
-import librosa
-import tempfile
-import json
-import requests
 import shutil
-import h5py
-import pandas
-
+import tempfile
 from pathlib import Path
+
+import h5py
+import librosa
+import numpy as np
+import pandas
 from sklearn.metrics.pairwise import cosine_similarity
 
 from backend.model.triplet_loss_nn.model import BaseModel
@@ -83,7 +81,7 @@ class AudioProcessor:
         return labels
 
     def __scrape_matched_tracks(self, labels):
-        query = 'select distinct tracks.track_id, a.artist_id, album_name, track_name, cover ' \
+        query = 'select distinct tracks.track_id, a.artist_id, artist_name, album_name, track_name, cover ' \
                 'from tracks join track_n_artist tna on tracks.track_id = tna.track_id ' \
                 'join artists a on a.artist_id = tna.artist_id ' \
                 'join albums a2 on a2.album_id = tracks.album_id ' \
@@ -99,4 +97,4 @@ class AudioProcessor:
 
     @staticmethod
     def __process_results(tracks, artists):
-        return '{ tracks: ' + tracks.to_json(orient='records') + ', artists: ' + artists.to_json(orient='records') + '}'
+        return '{ "tracks": ' + tracks.to_json(orient='records') + ', "artists": ' + artists.to_json(orient='records') + '}'

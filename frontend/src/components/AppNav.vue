@@ -18,7 +18,7 @@ export default {
     name: 'AppNav',
     data() {
         return {
-            appTitle: 'App name'
+            appTitle: '***** ***'
         };
     }
 };
@@ -34,5 +34,7 @@ nav {
 }
 .v-btn{
     font-weight: 600;
+    background: rgb(146,36,154);
+    background: linear-gradient(90deg, rgba(146,36,154,1) 0%, rgba(168,82,82,1) 99%);
 }
 </style>

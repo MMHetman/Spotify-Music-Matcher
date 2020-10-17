@@ -19,5 +19,6 @@ export default {
 @import url('https://fonts.googleapis.com/css2?family=Ruda:wght@400;500;600;700;800;900&display=swap');
 .v-application {
     font-family: 'Ruda', sans-serif !important;
+    overflow-y: hidden;
 }
 </style>

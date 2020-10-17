@@ -15,7 +15,7 @@ sql_engine = create_engine('mysql+pymysql://root:password@localhost/spotify_musi
 
 CORS(app, resources={r'/*': {'origins': '*'}})
 
-embedding_model = TensorFlowModelReflection('http://localhost:9007/v1/models/SongEmbedding',
+embedding_model = TensorFlowModelReflection('http://localhost:9000/v1/models/SongEmbedding',
                                             'backend/model/triplet_loss_nn/embeddings.hdf5')
 data_processor = AudioProcessor(embedding_model, sql_engine)
 
@@ -33,7 +33,8 @@ def upload_file():
             return redirect(request.url)
 
         file = request.files['file']
-
+        attributes_values = request.form['attributes']
+        attributes_names = request.form['attributesNames']
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)
