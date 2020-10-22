@@ -2,7 +2,7 @@
     <v-container fluid fill-height class="home-hero">
         <v-layout justify-center align-center column pa-5>
             <div class="home-title white--text text-xs-center">
-                SPOTIFY MUSIC MATCHER
+                MUSIC MATCHER
             </div>
             <div class="home-subtitle white--text text-xs-center">
                 Find songs similar to your record

@@ -18,7 +18,7 @@ export default {
     name: 'AppNav',
     data() {
         return {
-            appTitle: '***** ***'
+            appTitle: 'Music Matcher'
         };
     }
 };

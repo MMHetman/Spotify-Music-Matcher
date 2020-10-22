@@ -59,11 +59,27 @@ export default {
                 'Liveness'
             ],
             attributeLevels: ['Low', 'Medium', 'High'],
-            genres: ['Rock', 'Metal', 'Rap', 'Pop'],
+            genres: [
+                'folk',
+                'hip hop',
+                'soul',
+                'r&b',
+                'funk',
+                'reggae',
+                'rock',
+                'metal',
+                'rap',
+                'orchestra',
+                'classical',
+                'jazz',
+                'electronica',
+                'pop',
+                'country'
+            ],
             formModel: {
                 selectedFile: undefined,
                 selectedGenres: undefined,
-                selectedAttributes: [] < String > 5
+                selectedAttributes: ['', '', '', '', '']
             }
         };
     },
@@ -110,14 +126,21 @@ export default {
                 this.formModel.selectedFile,
                 this.formModel.selectedFile.name
             );
-            formData.append('attributeNames', this.attributes);
+            formData.append(
+                'attributeNames',
+                this.attributes.map(v => v.toLowerCase())
+            );
             formData.append(
                 'attributeValues',
                 this.formModel.selectedAttributes
             );
-
+            formData.append(
+                'genres',
+                this.formModel.selectedGenres
+            );
+            console.log(formData);
             axios.post('http://127.0.0.1:5000', formData).then(response => {
-                console.log(response.data);
+                console.log(JSON.parse(response.data));
                 this.$store.commit(
                     'storeResults',
                     this.processResults(response.data)
