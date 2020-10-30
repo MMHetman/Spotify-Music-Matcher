@@ -5,11 +5,15 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
-        tracksMatched: []
+        tracksMatched: [],
+        predictedGenre: []
     },
     mutations: {
         storeResults(state, results) {
             state.tracksMatched = results;
+        },
+        storeGenre(state, genres) {
+            state.predictedGenre = genres
         }
     },
     getters: {
@@ -18,6 +22,7 @@ export default new Vuex.Store({
             return state.tracksMatched.find(obj => {
                 return obj.track_id === id;
             });
-        }
+        },
+        getGenres: state => state.predictedGenre
     }
 });

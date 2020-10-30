@@ -46,10 +46,13 @@ class SongsHyperspaceAnalyser(SongsFinder):
             cs = cosine_similarity(file['embeddings'], embedding.reshape(1, -1))
             indices = cs.flatten().argsort()[::-1]
             labels = set()
+            candidates_ids = list(candidates_ids)
             for i in indices:
                 if len(labels) == 5:
                     break
-                if candidates_ids is not None and i in candidates_ids:
-                    label = file['labels'][i]
+                label = file['labels'][i]
+                print(label)
+                if candidates_ids is None or label in candidates_ids:
                     labels.add("'" + label + "'")
+        print(labels)
         return labels

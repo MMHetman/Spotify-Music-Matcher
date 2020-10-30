@@ -87,37 +87,52 @@ export default {
         processResults(resultsArray) {
             let tracksProcessed = [];
             let idsProcessed = [];
-            for (let track_i of resultsArray['tracks']) {
+            let all_genres = [];
+            for (let track_i of resultsArray) {
                 if (!idsProcessed.includes(track_i['track_id'])) {
                     idsProcessed.push(track_i['track_id']);
-                    let artists = [];
-                    for (let track_j of resultsArray['tracks']) {
+                    let artists = {};
+                    for (let track_j of resultsArray) {
                         if (track_j['track_id'] === track_i['track_id']) {
-                            let artistId = track_j['artist_id'];
-                            let genres = [];
-                            for (let artist of resultsArray['artists']) {
-                                if (artist['artist_id'] === artistId) {
-                                    genres.push(artist['genre_name']);
-                                }
+                            if (!(track_j['artist_id'] in artists)) {
+                                artists[track_j['artist_id']] = {
+                                    name: track_j['artist_name'],
+                                    genres: []
+                                };
                             }
-                            artists.push({
-                                artist_id: artistId,
-                                artist_name: track_j['artist_name'],
-                                genres: genres
-                            });
+                            artists[track_j['artist_id']]['genres'].push(
+                                track_j['genre_name']
+                            );
+                            all_genres.push(track_j['genre_name']);
                         }
                     }
-                    tracksProcessed.push({
-                        track_id: track_i['track_id'],
-                        track_name: track_i['track_name'],
-                        artists: artists,
-                        album_name: track_i['album_name'],
-                        cover: track_i['cover']
-                    });
+                    // eslint-disable-next-line no-unused-vars
+                    let {
+                        // eslint-disable-next-line no-unused-vars
+                        artist_id,
+                        // eslint-disable-next-line no-unused-vars
+                        artist_name,
+                        // eslint-disable-next-line no-unused-vars
+                        genre_name,
+                        ...track
+                    } = track_i;
+                    track['artists'] = artists;
+                    tracksProcessed.push(track);
                 }
             }
-
-            return tracksProcessed;
+            return [tracksProcessed, this.count_genres(all_genres)];
+        },
+        count_genres(genres) {
+            let result = {};
+            genres.forEach(function(x) {
+                result[x] = (result[x] || 0) + 1;
+            });
+            Object.keys(result).reduce((a, b) =>
+                result[a] > result[b] ? a : b
+            );
+            return Object.keys(result).reduce((a, b) =>
+                result[a] > result[b] ? a : b
+            );
         },
         onSubmit() {
             const formData = new FormData();
@@ -134,17 +149,13 @@ export default {
                 'attributeValues',
                 this.formModel.selectedAttributes
             );
-            formData.append(
-                'genres',
-                this.formModel.selectedGenres
-            );
+            formData.append('genres', this.formModel.selectedGenres);
             console.log(formData);
             axios.post('http://127.0.0.1:5000', formData).then(response => {
                 console.log(JSON.parse(response.data));
-                this.$store.commit(
-                    'storeResults',
-                    this.processResults(response.data)
-                );
+                let results = this.processResults(JSON.parse(response.data));
+                this.$store.commit('storeResults', results[0]);
+                this.$store.commit('storeGenre', results[1]);
                 this.$router.push({
                     name: 'Results'
                 });

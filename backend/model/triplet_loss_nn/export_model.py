@@ -1,7 +1,7 @@
 import tensorflow as tf
 import os
 
-from backend.model.triplet_loss_nn.model import SiameseNetworkModel
+from backend.server.model import SiameseNetworkModel
 
 model = SiameseNetworkModel('backend/model/train_hard_mining/cp.ckpt').embedding_model
 

@@ -9,10 +9,11 @@ class SongAnalysisResource(Resource):
     ATTRIBUTES_MARGIN = 0.1
     TEMPO_MARGIN = 10
     RESULTS_BASE_QUERY = \
-        "select " \
+        "select distinct " \
         "tracks.track_id, track_name, popularity, acousticness," \
         "danceability, duration_ms, energy, instrumentalness, `key`," \
-        "liveness, mode, tempo, valence, sample, artist_name, album_name " \
+        "liveness, mode, tempo, valence, sample, artist_name, album_name, " \
+        "cover, a.artist_id, genre_name " \
         "from tracks " \
         "join track_n_artist tna on tracks.track_id = tna.track_id " \
         "join artists a on a.artist_id = tna.artist_id " \
@@ -75,13 +76,18 @@ class SongAnalysisResource(Resource):
         return '0', '1'
 
     def __get_candidates_query(self, known_ids, attributes, genres):
-        query = "select track_id from tracks where track_id in ('" + "','".join(known_ids) + "') and " \
+        query = "select distinct tracks.track_id " \
+                "from tracks " \
+                "join track_n_artist tna on tracks.track_id = tna.track_id " \
+                "join artist_n_genre ang on tna.artist_id = ang.artist_id " \
+                "join genres g on g.genre_id = ang.genre_id " \
+                "where tracks.track_id in ('" + "','".join(known_ids) + "') and " \
                 "acousticness between " + " and ".join(attributes['acousticness']) + " and " \
                 "valence between " + " and ".join(attributes['valence']) + " and " \
                 "energy between " + " and ".join(attributes['energy']) + " and " \
                 "danceability between " + " and ".join(attributes['danceability'])
         if genres is not None:
-            query += " and genres in (" + ",".join(genres) + ")"
+            query += " and genre_name in ('" + "','".join(genres) + "')"
         return query
 
     def __constrain_to_str(self, attribute_value, attribute_name):

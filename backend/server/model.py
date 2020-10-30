@@ -21,7 +21,7 @@ class BaseModel(ABC):
         pass
 
 
-class TensorFlowModelReflection(BaseModel):
+class TensorFlowModelAbstraction(BaseModel):
     def __init__(self, model_address, embedding_file):
         self.embedding_file = embedding_file
         self.model_address = model_address
@@ -53,7 +53,7 @@ class TensorFlowModelReflection(BaseModel):
         return samples
 
     def embed(self, input_file):
-        input_tensor = self.__get_samples(*librosa.load(input_file))
+        input_tensor = self.__get_samples(*librosa.load(input_file, sr=None))
         data = json.dumps({
             'instances': input_tensor.tolist()
         })
