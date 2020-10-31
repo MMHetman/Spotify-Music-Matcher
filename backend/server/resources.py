@@ -37,7 +37,7 @@ class SongAnalysisResource(Resource):
         args = self.__parse_request()
         file = args['file']
         attributes = self.__get_attributes(args)
-        genres = args['genres'].split(',') if args['genres'] != 'undefined' else None
+        genres = args['genres'].split(',') if args['genres'] not in ('undefined', None) else None
         candidates_ids = None
         if any([value is not None for value in attributes.values()]):
             candidates_query = self.__get_candidates_query(self.songs_finder.get_known_ids(), attributes, genres)
@@ -45,6 +45,9 @@ class SongAnalysisResource(Resource):
         matched_ids = self.songs_finder.find_similar_songs(file, candidates_ids['track_id'])
         results_query = self.RESULTS_BASE_QUERY + " where tracks.track_id in (" + ",".join(matched_ids) + ')'
         return pd.read_sql_query(results_query, self.sql_engine).to_json(orient='records')
+
+    def get(self):
+        pass
 
     def __parse_request(self):
         parse = reqparse.RequestParser()

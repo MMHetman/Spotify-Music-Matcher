@@ -3,3 +3,4 @@ Flask-Cors==3.0.9
 TensorFlow==2.2.0
 Keras
 Kapre
+Werkzeug
