@@ -6,6 +6,7 @@ from pathlib import Path
 
 from sklearn.metrics.pairwise import cosine_similarity
 
+from backend.server.genre_voting import Elector
 from backend.server.model import BaseModel
 
 
@@ -22,15 +23,21 @@ class SongsFinder(ABC):
 
 class SongsHyperspaceAnalyser(SongsFinder):
 
-    def __init__(self, embedding_model: BaseModel):
+    def __init__(self, embedding_model: BaseModel, genre_chooser: Elector):
         self.embedding_model = embedding_model
+        self.genre_chooser = genre_chooser
 
     def get_known_ids(self):
         return self.embedding_model.get_known_ids()
 
     def find_similar_songs(self, file_stream, candidates_ids=None):
         embedding = self.__get_embedding(file_stream)
+        print(candidates_ids)
         found_ids = self.__find_nearest_neighbours(embedding, candidates_ids)
+        candidates_ids = self.genre_chooser.find_candidates(found_ids, self.get_known_ids())
+        print(candidates_ids)
+        found_ids = self.__find_nearest_neighbours(embedding, candidates_ids['track_id'])
+        print(found_ids)
         return found_ids
 
     def __get_embedding(self, file_stream):
@@ -51,8 +58,6 @@ class SongsHyperspaceAnalyser(SongsFinder):
                 if len(labels) == 5:
                     break
                 label = file['labels'][i]
-                print(label)
                 if candidates_ids is None or label in candidates_ids:
                     labels.add("'" + label + "'")
-        print(labels)
         return labels
