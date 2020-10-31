@@ -152,8 +152,10 @@ export default {
             formData.append('genres', this.formModel.selectedGenres);
             console.log(formData);
             axios.post('http://127.0.0.1:5000', formData).then(response => {
-                console.log(JSON.parse(response.data));
-                let results = this.processResults(JSON.parse(response.data));
+                console.log(response.data);
+                let results = this.processResults(
+                    JSON.parse(response.data['results'])
+                );
                 this.$store.commit('storeResults', results[0]);
                 this.$store.commit('storeGenre', results[1]);
                 this.$router.push({

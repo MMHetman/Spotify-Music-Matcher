@@ -42,12 +42,10 @@ class SongAnalysisResource(Resource):
         if any([value is not None for value in attributes.values()]):
             candidates_query = self.__get_candidates_query(self.songs_finder.get_known_ids(), attributes, genres)
             candidates_ids = pd.read_sql(candidates_query, self.sql_engine)
-        matched_ids = self.songs_finder.find_similar_songs(file, candidates_ids['track_id'])
+        matched_ids, sample_start, pred_genre = self.songs_finder.find_similar_songs(file, candidates_ids['track_id'])
         results_query = self.RESULTS_BASE_QUERY + " where tracks.track_id in (" + ",".join(matched_ids) + ')'
-        return pd.read_sql_query(results_query, self.sql_engine).to_json(orient='records')
-
-    def get(self):
-        pass
+        return {'results': pd.read_sql_query(results_query, self.sql_engine).to_json(orient='records'),
+                'sample_strat': str(sample_start), 'predicted_genre': list(pred_genre)}
 
     def __parse_request(self):
         parse = reqparse.RequestParser()
@@ -85,10 +83,12 @@ class SongAnalysisResource(Resource):
                 "join artist_n_genre ang on tna.artist_id = ang.artist_id " \
                 "join genres g on g.genre_id = ang.genre_id " \
                 "where tracks.track_id in ('" + "','".join(known_ids) + "') and " \
-                "acousticness between " + " and ".join(attributes['acousticness']) + " and " \
-                "valence between " + " and ".join(attributes['valence']) + " and " \
-                "energy between " + " and ".join(attributes['energy']) + " and " \
-                "danceability between " + " and ".join(attributes['danceability'])
+                                                                        "acousticness between " + " and ".join(
+            attributes['acousticness']) + " and " \
+                                          "valence between " + " and ".join(attributes['valence']) + " and " \
+                                                                                                     "energy between " + " and ".join(
+            attributes['energy']) + " and " \
+                                    "danceability between " + " and ".join(attributes['danceability'])
         if genres is not None:
             query += " and genre_name in ('" + "','".join(genres) + "')"
         return query

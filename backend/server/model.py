@@ -50,16 +50,16 @@ class TensorFlowModelAbstraction(BaseModel):
         samples = np.zeros((10, 5 * sampling_rate, 1))
         for i in range(10):
             samples[i] = track[samples_starts[i]: samples_starts[i] + 5 * sampling_rate]
-        return samples
+        return samples, start
 
     def embed(self, input_file):
-        input_tensor = self.__get_samples(*librosa.load(input_file, sr=None))
+        input_tensor, start = self.__get_samples(*librosa.load(input_file, sr=None))
         data = json.dumps({
             'instances': input_tensor.tolist()
         })
 
         response = requests.post(self.model_address + ':predict', data=data.encode('utf-8'))
-        return np.mean(response.json()['predictions'], axis=0)
+        return np.mean(response.json()['predictions'], axis=0), start
 
     def read_embedding_file(self):
         return h5py.File(self.embedding_file, 'r')
