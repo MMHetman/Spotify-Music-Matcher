@@ -45,7 +45,7 @@ class SongAnalysisResource(Resource):
         matched_ids, sample_start, pred_genre = self.songs_finder.find_similar_songs(file, candidates_ids['track_id'])
         results_query = self.RESULTS_BASE_QUERY + " where tracks.track_id in (" + ",".join(matched_ids) + ')'
         return {'results': pd.read_sql_query(results_query, self.sql_engine).to_json(orient='records'),
-                'sample_strat': str(sample_start), 'predicted_genre': list(pred_genre)}
+                'sample_start': str(sample_start), 'predicted_genre': list(pred_genre)}
 
     def __parse_request(self):
         parse = reqparse.RequestParser()
