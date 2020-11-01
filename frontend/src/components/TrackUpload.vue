@@ -153,11 +153,20 @@ export default {
             console.log(formData);
             axios.post('http://127.0.0.1:5000', formData).then(response => {
                 console.log(response.data);
+                console.log(this.formModel.selectedFile)
                 let results = this.processResults(
                     JSON.parse(response.data['results'])
                 );
                 this.$store.commit('storeResults', results[0]);
-                this.$store.commit('storeGenre', results[1]);
+                this.$store.commit(
+                    'storeGenre',
+                    response.data['predicted_genre'].join(', ')
+                );
+                this.$store.commit(
+                    'storeSampleStart',
+                    response.data['sample_start']
+                );
+                this.$store.commit('storeFileUrl', this.formModel.selectedFile);
                 this.$router.push({
                     name: 'Results'
                 });
