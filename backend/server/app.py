@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from backend.server.genre_voting import GenreElector
 from backend.server.similar_songs_finding import SongsHyperspaceAnalyser
 from backend.server.model import TensorFlowModelAbstraction
-from backend.server.resources import SongAnalysisResource
+from backend.server.resources import SongAnalysisResource, PopularTracksByGenres
 
 DEBUG = True
 embedding_model = TensorFlowModelAbstraction('http://localhost:9000/v1/models/SongEmbedding',
@@ -23,6 +23,9 @@ CORS(app, resources={r'/*': {'origins': '*'}})
 
 api.add_resource(
     SongAnalysisResource, '/', resource_class_kwargs={'sql_engine': sql_engine, 'songs_finder': songs_finder}
+)
+api.add_resource(
+    PopularTracksByGenres, '/top_tracks', resource_class_kwargs={'sql_engine': sql_engine}
 )
 
 if __name__ == '__main__':
