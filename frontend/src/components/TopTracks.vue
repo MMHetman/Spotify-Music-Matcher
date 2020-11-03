@@ -4,13 +4,13 @@
         <v-divider />
         <div>
             <v-container>
-                <v-row v-for="i in 10" :key="i">
+                <v-row v-for="track in this.$parent.topTracks" :key="track">
                     <v-col>
-                        <b>Track name</b> <br />
-                        Artist name
+                        <b>{{track.track_name}}</b> <br />
+                        {{track.artist_name}}
                     </v-col>
-                    <v-col>
-                            Popularity: 60
+                    <v-col cols="3">
+                            Popularity: {{track.popularity}}
                     </v-col>
                 </v-row>
             </v-container>

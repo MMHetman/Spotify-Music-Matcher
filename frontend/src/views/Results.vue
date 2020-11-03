@@ -1,14 +1,14 @@
 <template>
     <v-container fluid class="results" style="height: 100% ">
-        <v-container class="justify-center genres"
-                @click="showTopSongsModal = true">
-                <v-card-title primary-title class="justify-center">
-                    <div style="text-align: center; color: white;  text-shadow: 1px 1px 5px #000000">
-                        <h3 class="c0">Predicted genres:</h3>
+        <v-container class="justify-center genres" @click="showTopTracks">
+            <v-card-title primary-title class="justify-center">
+                <div
+                    style="text-align: center; color: white;  text-shadow: 1px 1px 5px #000000"
+                >
+                    <h3 class="c0">Predicted genres:</h3>
                     <div>{{ genres }}</div>
-                    </div>
-                </v-card-title>
-
+                </div>
+            </v-card-title>
         </v-container>
         <AnalysisResults
             class="mt-16"
@@ -48,9 +48,7 @@
                 v-if="showTopSongsModal"
                 @click="showTopSongsModal = false"
             >
-                <top-tracks
-                    class="modal"
-                />
+                <top-tracks class="modal" />
             </div>
         </transition>
     </v-container>
@@ -59,6 +57,7 @@
 import AnalysisResults from '@/components/TracksCards';
 import ResultDetails from '@/components/TrackDetails';
 import TopTracks from '@/components/TopTracks';
+import axios from 'axios';
 export default {
     name: 'Results',
     components: { TopTracks, AnalysisResults, ResultDetails },
@@ -67,6 +66,21 @@ export default {
             let minutes = Math.floor(time / 60);
             let seconds = (time % 60).toFixed(0);
             return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+        },
+        showTopTracks() {
+            if (this.topTracks === undefined) {
+                axios
+                    .get(
+                        'http://127.0.0.1:5000/top_tracks?genres=' +
+                            this.genres +
+                            '&amount=5'
+                    )
+                    .then(response => {
+                        console.log(response);
+                        this.topTracks = JSON.parse(response.data);
+                    });
+            }
+            this.showTopSongsModal = true;
         }
     },
     data() {
@@ -77,7 +91,8 @@ export default {
             showDetailsModal: false,
             showTopSongsModal: false,
             selectedId: undefined,
-            sampleStart: undefined
+            sampleStart: undefined,
+            topTracks: undefined
         };
     },
     created() {
@@ -133,7 +148,7 @@ export default {
         rgba(68, 120, 181, 1) 100%
     );
     width: 30%;
-    height:auto;
+    height: auto;
 }
 
 .input-player {

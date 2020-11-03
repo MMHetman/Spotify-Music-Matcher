@@ -112,12 +112,12 @@ class PopularTracksByGenres(Resource):
         parser.add_argument('genres')
         parser.add_argument('amount')
         args = parser.parse_args()
-        genres = args['genres']
+        genres = args['genres'].replace(",", "','")
         amount = args['amount']
         query = "select track_name, artist_name, popularity from tracks " \
                 "join track_n_artist tna on tracks.track_id = tna.track_id " \
                 "join artists a on tna.artist_id = a.artist_id " \
                 "join artist_n_genre ang on a.artist_id = ang.artist_id " \
                 "join genres g on g.genre_id = ang.genre_id " \
-                "where genre_name in (" + genres + ") order by popularity desc limit " + amount
+                "where genre_name in ('" + genres + "') order by popularity desc limit " + amount
         return pd.read_sql(query, self.sql_engine).to_json(orient='records')
