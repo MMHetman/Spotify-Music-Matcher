@@ -32,9 +32,11 @@ class SongsHyperspaceAnalyser(SongsFinder):
 
     def find_similar_songs(self, file_stream, candidates_ids=None):
         embedding, sample_start = self.__get_embedding(file_stream)
+        if candidates_ids is not None:
+            candidates_ids = [c_id[0] for c_id in candidates_ids]
         found_ids = self.__find_nearest_neighbours(embedding, candidates_ids)
         candidates_ids, genre = self.genre_chooser.find_candidates(found_ids, self.get_known_ids())
-        found_ids = self.__find_nearest_neighbours(embedding, candidates_ids['track_id'])
+        found_ids = self.__find_nearest_neighbours(embedding, candidates_ids)
         return found_ids, sample_start, genre
 
     def __get_embedding(self, file_stream):

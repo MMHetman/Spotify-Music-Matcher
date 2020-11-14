@@ -1,3 +1,4 @@
+import sqlite3
 from abc import ABC, abstractmethod
 from collections import Iterable
 
@@ -8,6 +9,7 @@ class Elector(ABC):
     def find_candidates(self, predicted_similar_ids: Iterable, known_ids):
         winner_genre = self.elect(predicted_similar_ids)
         candidates = self.query_candidates(winner_genre, known_ids)
+        candidates = [cand[0] for cand in candidates]
         return candidates, winner_genre
 
     @abstractmethod
@@ -36,8 +38,8 @@ class GenreElector(Elector):
                 'join genres g on ang.genre_id = g.genre_id where tna.track_id in ' \
                 "(" + ",".join(track_ids) + ") " \
                                                'group by g.genre_name'
-        votes = pd.read_sql(query, self.sql_engine)
-        print(votes)
+        with sqlite3.connect(self.sql_engine) as con:
+            votes = pd.read_sql(query, con)
         return votes
 
     def query_candidates(self, winner_genre, known_ids):
@@ -48,4 +50,8 @@ class GenreElector(Elector):
                 "join genres g on g.genre_id = ang.genre_id " \
                 "where tracks.track_id in ('" + "','".join(known_ids) + "') and " \
                 "genre_name in ('" + "','".join(winner_genre) +"')"
-        return pd.read_sql(query, self.sql_engine)
+        with sqlite3.connect(self.sql_engine) as con:
+            cur = con.cursor()
+            cur.execute(query)
+            data = cur.fetchall()
+        return data

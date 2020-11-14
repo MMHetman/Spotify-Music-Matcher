@@ -3,7 +3,7 @@ import werkzeug
 from flask_restful import Resource, reqparse
 
 from backend.server.similar_songs_finding import SongsFinder
-
+from backend.server.exceptions import InvalidSongData
 
 class SongAnalysisResource(Resource):
     ATTRIBUTES_MARGIN = 0.1
@@ -18,7 +18,6 @@ class SongAnalysisResource(Resource):
         "join track_n_artist tna on tracks.track_id = tna.track_id " \
         "join artists a on a.artist_id = tna.artist_id " \
         "join albums a2 on a2.album_id = tracks.album_id " \
-        "join song_n_cover snc on tracks.track_id = snc.id " \
         "join artist_n_genre ang on a.artist_id = ang.artist_id " \
         "join genres g on g.genre_id = ang.genre_id"
 
@@ -36,15 +35,20 @@ class SongAnalysisResource(Resource):
     def post(self):
         args = self.__parse_request()
         file = args['file']
+        if len(file.filename.split('.')) < 0 or file.filename.split('.')[1] != 'mp3':
+            raise InvalidSongData('Invalid file')
         attributes = self.__get_attributes(args)
         genres = args['genres'].split(',') if args['genres'] not in ('undefined', None) else None
         candidates_ids = None
         if any([value is not None for value in attributes.values()]):
             candidates_query = self.__get_candidates_query(self.songs_finder.get_known_ids(), attributes, genres)
-            candidates_ids = pd.read_sql(candidates_query, self.sql_engine)
-        matched_ids, sample_start, pred_genre = self.songs_finder.find_similar_songs(file, candidates_ids['track_id'])
+            cur = self.sql_engine().cursor()
+            cur.execute(candidates_query)
+            candidates_ids = cur.fetchall()
+        matched_ids, sample_start, pred_genre = self.songs_finder.find_similar_songs(file, candidates_ids)
         results_query = self.RESULTS_BASE_QUERY + " where tracks.track_id in (" + ",".join(matched_ids) + ')'
-        return {'results': pd.read_sql_query(results_query, self.sql_engine).to_json(orient='records'),
+        data = pd.read_sql(results_query, self.sql_engine()).to_json(orient='records')
+        return {'results': data,
                 'sample_start': str(sample_start), 'predicted_genre': list(pred_genre)}
 
     def __parse_request(self):
@@ -67,13 +71,17 @@ class SongAnalysisResource(Resource):
         }
 
     def __parse_users_constrain(self, attribute_value, attribute_name):
-        limits = self.ATTRIBUTES_LIMITS[attribute_name]
-        if attribute_value == 'High':
-            return str(limits[1] - self.attributes_margin), '1'
-        if attribute_value == 'Medium':
-            return str(limits[0] - self.attributes_margin), str(limits[1] + self.attributes_margin)
-        if attribute_value == 'Low':
-            return '0', str(limits[0] + self.attributes_margin)
+        if attribute_value:
+            if attribute_name not in self.ATTRIBUTES_LIMITS.keys():
+                raise InvalidSongData('unknown attribute name: ' + attribute_name)
+            limits = self.ATTRIBUTES_LIMITS[attribute_name]
+            if attribute_value == 'High':
+                return str(limits[1] - self.ATTRIBUTES_MARGIN), '1'
+            if attribute_value == 'Medium':
+                return str(limits[0] - self.ATTRIBUTES_MARGIN), str(limits[1] + self.ATTRIBUTES_MARGIN)
+            if attribute_value == 'Low':
+                return '0', str(limits[0] + self.ATTRIBUTES_MARGIN)
+            raise InvalidSongData('unknown attribute level: ' + attribute_value)
         return '0', '1'
 
     def __get_candidates_query(self, known_ids, attributes, genres):
@@ -93,15 +101,6 @@ class SongAnalysisResource(Resource):
             query += " and genre_name in ('" + "','".join(genres) + "')"
         return query
 
-    def __constrain_to_str(self, attribute_value, attribute_name):
-        limits = self.parse_users_constrain(attribute_value, attribute_name)
-        return attribute_name + ' between ' + str(limits[0]) + ' and ' + str(limits[1]) + ' '
-
-    @staticmethod
-    def __process_results(tracks, artists):
-        return '{ "tracks": ' + tracks.to_json(orient='records') + ', "artists": ' + artists.to_json(
-            orient='records') + '}'
-
 
 class PopularTracksByGenres(Resource):
     def __init__(self, sql_engine):
@@ -114,10 +113,15 @@ class PopularTracksByGenres(Resource):
         args = parser.parse_args()
         genres = args['genres'].replace(",", "','")
         amount = args['amount']
+        if int(amount) > 100:
+            raise InvalidSongData("You can't query more than 100 songs ")
         query = "select track_name, artist_name, popularity from tracks " \
                 "join track_n_artist tna on tracks.track_id = tna.track_id " \
                 "join artists a on tna.artist_id = a.artist_id " \
                 "join artist_n_genre ang on a.artist_id = ang.artist_id " \
                 "join genres g on g.genre_id = ang.genre_id " \
                 "where genre_name in ('" + genres + "') order by popularity desc limit " + amount
-        return pd.read_sql(query, self.sql_engine).to_json(orient='records')
+        data = pd.read_sql(query, self.sql_engine())
+        if data.shape[0] == 0:
+            raise InvalidSongData('No songs for given request')
+        return data.to_json(orient='records')
